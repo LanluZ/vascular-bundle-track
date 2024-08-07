@@ -17,7 +17,7 @@ def main():
     # 目标跟踪
     tracker = BYTETracker()
     # 视频对象
-    video = cv2.VideoCapture('3.mp4')
+    video = cv2.VideoCapture('1.mp4')
 
     # 清除文件夹
     if os.path.exists('./output'):
@@ -59,9 +59,9 @@ def main():
         cv2.imwrite("./output/image-{}.png".format(str(i).zfill(4)), im)
         i += 1
 
-    # 保存pkl
-    with open('3.pkl', 'wb') as f:
-        pickle.dump(vascular_list, f)
+    # 保存csv
+    for k, v in vascular_list.items():
+        v.to_csv('./csv/{}.csv'.format(k))
 
     video.release()
     cv2.destroyAllWindows()
