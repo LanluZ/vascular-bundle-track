@@ -17,7 +17,7 @@ def main():
     # 目标跟踪
     tracker = BYTETracker()
     # 视频对象
-    video = cv2.VideoCapture('1.mp4')
+    video = cv2.VideoCapture('3.mp4')
 
     # 清除文件夹
     if os.path.exists('./output'):
@@ -41,10 +41,10 @@ def main():
         box_cls = box_cls.detach().cpu().numpy().astype(np.int32)
         # 拼接
         box = np.concatenate([box_xyxy, box_conf.reshape(-1, 1), box_cls.reshape(-1, 1)], axis=1)
-        tracker_result = tracker.update(box, im)
+        tracker.update(box, im)
         # 跟踪结果记录
         for trk in tracker.active_tracks:
-            if trk.is_activated and trk.time_since_update < 1:
+            if trk.is_activated:
                 # 帧对象
                 frame = Frame(trk.xyxy, trk.conf, trk.cls, i)
                 # 加入字典

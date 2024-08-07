@@ -20,7 +20,7 @@ class Vascular:
     frames = []  # 连续帧
 
     def __init__(self):
-        pass
+        self.frames = []  # 分配新指针
 
     # 添加帧
     def add(self, frame: Frame):
@@ -40,12 +40,12 @@ class Vascular:
         df['time'] = df['time'].astype(int)
 
         for i, frame in enumerate(self.frames):
-            df.loc[i,'xmin'] = frame.xyxy[0]
-            df.loc[i,'ymin'] = frame.xyxy[1]
-            df.loc[i,'xmax'] = frame.xyxy[2]
-            df.loc[i,'ymax'] = frame.xyxy[3]
-            df.loc[i,'conf'] = frame.conf
-            df.loc[i,'cls'] = frame.cls
-            df.loc[i,'time'] = frame.time
+            df.loc[i, 'xmin'] = frame.xyxy[0]
+            df.loc[i, 'ymin'] = frame.xyxy[1]
+            df.loc[i, 'xmax'] = frame.xyxy[2]
+            df.loc[i, 'ymax'] = frame.xyxy[3]
+            df.loc[i, 'conf'] = frame.conf
+            df.loc[i, 'cls'] = frame.cls
+            df.loc[i, 'time'] = frame.time
 
-        df.to_csv(csv_path)
+        df.to_csv(csv_path, index=False)
