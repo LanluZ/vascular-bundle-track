@@ -10,6 +10,8 @@ from boxmot import BYTETracker
 from splicing import *
 from vascular import *
 
+detect_filename = '3_new.mp4'
+
 
 def main():
     # 目标检测
@@ -17,12 +19,16 @@ def main():
     # 目标跟踪
     tracker = BYTETracker()
     # 视频对象
-    video = cv2.VideoCapture('3.mp4')
+    video = cv2.VideoCapture(detect_filename)
 
     # 清除文件夹
     if os.path.exists('./output'):
         shutil.rmtree('./output')
     os.mkdir('./output')
+
+    if os.path.exists('./csv'):
+        shutil.rmtree('./csv')
+    os.mkdir('./csv')
 
     i = 0
     vascular_list = dict()  # 维管束对象字典
@@ -67,7 +73,7 @@ def main():
     cv2.destroyAllWindows()
 
     # 合成视频
-    # splicing_video('output', 'video/1.mp4', 15)
+    splicing_video('output', 'video/' + detect_filename, 15)
 
 
 if __name__ == '__main__':
