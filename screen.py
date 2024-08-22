@@ -17,7 +17,7 @@ def screen_out():
             df = pd.read_csv(os.path.join(csv_dir_path, file), header=0)
 
             # 排除过短数据
-            if df.shape[0] < 130:
+            if df.shape[0] < 120:
                 shutil.move(os.path.join(csv_dir_path, file), os.path.join(csv_dir_path, 'selected', file))
                 continue
 
