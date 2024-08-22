@@ -31,4 +31,4 @@ def splicing_video(frames_dir_path, output_file_path, fps):
 
 
 if __name__ == '__main__':
-    splicing_video('output', 'video/3.mp4', 15)
+    splicing_video('output', 'video/3_new.mp4', 15)
