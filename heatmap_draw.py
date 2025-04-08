@@ -17,16 +17,21 @@ def main():
     csv_dir_path = './csv/'
 
     # 参数设定
-    move_threshold = 10  # 运动阈值单位像素
+    x_move_threshold = 10  # 运动阈值单位像素
     cmap = sns.color_palette("rocket_r", as_cmap=True)  # 色彩映射
     image_resize_score = 3 / 5  # 图像缩放比例
 
     # 总体数据存储
     x_delta_list = []
     y_delta_list = []
-    time_start_list = []
-    time_end_list = []
-    time_duration_list = []
+    x_time_start_list = []
+    x_time_end_list = []
+    x_time_duration_list = []
+    y_time_start_list = []
+    y_time_end_list = []
+    y_time_duration_list = []
+    x_speed_list = []
+    y_speed_list = []
     rectangle_position_list = []
     id_list = []
 
@@ -43,21 +48,30 @@ def main():
         y_delta = abs(df.iloc[-1]['y_center'] - df.iloc[0]['y_center'])
 
         # 获取运动时间
-        time_start = 0
-        time_end = 0
-        move_threshold = y_delta * 0.1  # 动态阈值
+        x_time_start, y_time_start = 0, 0
+        x_time_end, y_time_end = 0, 0
+        x_move_threshold, y_move_threshold = x_delta * 0.1, y_delta * 0.1  # 动态阈值
         for i in range(1, df.shape[0]):
-            # 运动开始
-            if abs(df.iloc[i]['y_center'] - df.iloc[0]['y_center']) >= move_threshold:
-                time_start = df.iloc[i]['time']
+            if abs(df.iloc[i]['x_center'] - df.iloc[0]['x_center']) >= x_move_threshold:
+                x_time_start = df.iloc[i]['time']
                 break
-        for i in range(1, df.shape[0]):
-            # 运动结束
-            if abs(df.iloc[i]['y_center'] - df.iloc[-1]['y_center']) <= move_threshold:
-                time_end = df.iloc[i]['time']
+        for i in range(1, df.shape[0]):  # 运动结束
+            if abs(df.iloc[i]['x_center'] - df.iloc[-1]['x_center']) <= x_move_threshold:
+                x_time_end = df.iloc[i]['time']
+                break
+        for i in range(1, df.shape[0]):  # 运动开始
+            if abs(df.iloc[i]['y_center'] - df.iloc[0]['y_center']) >= y_move_threshold:
+                y_time_start = df.iloc[i]['time']
+                break
+        for i in range(1, df.shape[0]):  # 运动结束
+            if abs(df.iloc[i]['y_center'] - df.iloc[-1]['y_center']) <= y_move_threshold:
+                y_time_end = df.iloc[i]['time']
                 break
 
-        time_duration = time_end - time_start
+        x_time_duration = x_time_end - x_time_start
+        y_time_duration = y_time_end - y_time_start
+        x_speed = x_delta / x_time_duration if x_time_duration != 0 else 0
+        y_speed = y_delta / y_time_duration if y_time_duration != 0 else 0
 
         # 获取绘制矩形坐标
         xmin = int(df.iloc[0]['xmin'])
@@ -73,23 +87,33 @@ def main():
         rectangle_position_list.append(rectangle_position)
         x_delta_list.append(x_delta)
         y_delta_list.append(y_delta)
-        time_start_list.append(time_start)
-        time_end_list.append(time_end)
-        time_duration_list.append(time_duration)
+        x_time_start_list.append(x_time_start)
+        x_time_end_list.append(x_time_end)
+        x_time_duration_list.append(x_time_duration)
+        x_speed_list.append(x_speed)
+        y_time_start_list.append(y_time_start)
+        y_time_end_list.append(y_time_end)
+        y_time_duration_list.append(y_time_duration)
+        y_speed_list.append(y_speed)
 
     # 维度转换
     x_delta_list = np.array(x_delta_list).reshape(-1, 1)
     y_delta_list = np.array(y_delta_list).reshape(-1, 1)
-    time_start_list = np.array(time_start_list).reshape(-1, 1)
-    time_end_list = np.array(time_end_list).reshape(-1, 1)
-    time_duration_list = np.array(time_duration_list).reshape(-1, 1)
+    x_time_start_list = np.array(x_time_start_list).reshape(-1, 1)
+    x_time_end_list = np.array(x_time_end_list).reshape(-1, 1)
+    x_time_duration_list = np.array(x_time_duration_list).reshape(-1, 1)
+    x_speed_list = np.array(x_speed_list).reshape(-1, 1)
+    y_time_start_list = np.array(y_time_start_list).reshape(-1, 1)
+    y_time_end_list = np.array(y_time_end_list).reshape(-1, 1)
+    y_time_duration_list = np.array(y_time_duration_list).reshape(-1, 1)
+    y_speed_list = np.array(y_speed_list).reshape(-1, 1)
 
     # 绘制热力矩形
-    image = draw_heatmap_rect_to_image(image, time_duration_list, cmap, rectangle_position_list)
+    image = draw_heatmap_rect_to_image(image, x_speed_list, cmap, rectangle_position_list)
 
     # 绘制热力条
     plt.figure()
-    sns.heatmap(time_duration_list, cmap=cmap)
+    sns.heatmap(x_speed_list, cmap=cmap)
     plt.savefig('./colorbar.png')
 
     # 读取热力条并且绘制白色
