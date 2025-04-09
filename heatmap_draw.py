@@ -109,11 +109,11 @@ def main():
     y_speed_list = np.array(y_speed_list).reshape(-1, 1)
 
     # 绘制热力矩形
-    image = draw_heatmap_rect_to_image(image, x_speed_list, cmap, rectangle_position_list)
+    image = draw_heatmap_rect_to_image(image, y_time_end_list, cmap, rectangle_position_list) # 绘制其他图请修改此处
 
     # 绘制热力条
-    plt.figure()
-    sns.heatmap(x_speed_list, cmap=cmap)
+    plt.figure(dpi=300)
+    sns.heatmap(y_time_end_list, cmap=cmap) # 绘制其他图请修改此处
     plt.savefig('./colorbar.png')
 
     # 读取热力条并且绘制白色
@@ -140,18 +140,21 @@ def draw_heatmap_rect_to_image(image, data_list, cmap, rectangle_position_list):
     # 色彩映射
     alpha = 255
     scaler = MinMaxScaler(feature_range=(0, 1))
-    data_list = scaler.fit_transform(data_list)
-    colors = cmap(data_list).squeeze(1)
+    data_norm_list = scaler.fit_transform(data_list)
+    colors = cmap(data_norm_list).squeeze(1)
     colors = [(int(c[2] * 255), int(c[1] * 255), int(c[0] * 255), alpha) for c in colors]  # 转16进制和BGR
 
     # 绘制矩形
-    for i in range(len(data_list)):
+    for i in range(len(data_norm_list)):
         color = colors[i]
 
         pt1 = rectangle_position_list[i][0]
         pt2 = rectangle_position_list[i][1]
 
-        cv2.rectangle(image, pt1, pt2, color, -1)  # 绘制矩形
+        # 绘制矩形
+        cv2.rectangle(image, pt1, pt2, color, -1)
+        # 标记数值 如果需要取消注释
+        # cv2.putText(image, str(data_list[i]), (pt1[0] + 5, pt1[1] + 15), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
     return image
 
