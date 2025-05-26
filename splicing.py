@@ -13,7 +13,6 @@ def splicing_video(frames_dir_path, output_file_path, fps):
     frame_files = os.listdir(frames_dir_path)
 
     # 按帧合成视频
-    fps = 15
     image = cv2.imread(os.path.join(frames_dir_path, frame_files[0]))
     height, width, _ = image.shape
 
