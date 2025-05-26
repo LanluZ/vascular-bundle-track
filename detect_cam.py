@@ -1,11 +1,6 @@
-import os
-
-import cv2
 import shutil
-import pickle
 
 import numpy as np
-from thop.rnn_hooks import count_lstm
 
 from ultralytics import YOLO
 from boxmot import ByteTrack
@@ -74,7 +69,7 @@ def main():
                     vascular_list[trk.id].add(frame)
 
         # 轨迹绘制
-        tracker.plot_results(im, show_trajectories=True, thickness=2, fontscale=1)
+        tracker.plot_results(im, show_trajectories=True, thickness=8, fontscale=2)
         cv2.imwrite("./output/image-{}.png".format(str(i).zfill(4)), im)
         i += 1
 
@@ -86,7 +81,7 @@ def main():
     cv2.destroyAllWindows()
 
     # 合成视频
-    splicing_video('output', 'video/' + detect_filename, 15)
+    splicing_video('output', 'video/' + detect_filename, 5)
 
 
 # 文件夹视频类(目的兼容cv2.VideoCapture)
