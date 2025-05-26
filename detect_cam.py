@@ -24,13 +24,14 @@ def main():
     # 目标跟踪
     tracker = ByteTrack()
     # 载入视频对象
-    global detect_filename # 全局化
+    global detect_filename  # 全局化
     video = cv2.VideoCapture(detect_filename) if not os.path.isdir(detect_filename) else DirVideo(detect_filename)
     # 如果是文件夹重命名detect_filename
     if os.path.isdir(detect_filename):
         detect_filename = os.path.normpath(detect_filename)
         detect_filename = detect_filename.replace('\\', '/')
         detect_filename = detect_filename.split('/')[-1]
+        detect_filename = detect_filename + '.mp4'
 
     # 清除文件夹
     if os.path.exists('./output'):
@@ -73,7 +74,7 @@ def main():
                     vascular_list[trk.id].add(frame)
 
         # 轨迹绘制
-        tracker.plot_results(im, show_trajectories=True)
+        tracker.plot_results(im, show_trajectories=True, thickness=2, fontscale=1)
         cv2.imwrite("./output/image-{}.png".format(str(i).zfill(4)), im)
         i += 1
 
