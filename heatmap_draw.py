@@ -16,8 +16,11 @@ def main():
     image = cv2.cvtColor(image, cv2.COLOR_BGR2BGRA)
     csv_dir_path = './csv/'
 
+    figures_dir = './reports/figures'
+    os.makedirs(figures_dir, exist_ok=True)
+
     # 参数设定
-    x_move_threshold = 10  # 运动阈值单位像素
+    base_threshold_x, base_threshold_y = 4, 5  # 运动阈值
     cmap = sns.color_palette("rocket_r", as_cmap=True)  # 色彩映射
     image_resize_score = 3 / 5  # 图像缩放比例
 
@@ -47,31 +50,9 @@ def main():
         x_delta = abs(df.iloc[-1]['x_center'] - df.iloc[0]['x_center'])
         y_delta = abs(df.iloc[-1]['y_center'] - df.iloc[0]['y_center'])
 
-        # 获取运动时间
-        x_time_start, y_time_start = 0, 0
-        x_time_end, y_time_end = 0, 0
-        x_move_threshold, y_move_threshold = x_delta * 0.1, y_delta * 0.1  # 动态阈值
-        for i in range(1, df.shape[0]):
-            if abs(df.iloc[i]['x_center'] - df.iloc[0]['x_center']) >= x_move_threshold:
-                x_time_start = df.iloc[i]['time']
-                break
-        for i in range(1, df.shape[0]):  # 运动结束
-            if abs(df.iloc[i]['x_center'] - df.iloc[-1]['x_center']) <= x_move_threshold:
-                x_time_end = df.iloc[i]['time']
-                break
-        for i in range(1, df.shape[0]):  # 运动开始
-            if abs(df.iloc[i]['y_center'] - df.iloc[0]['y_center']) >= y_move_threshold:
-                y_time_start = df.iloc[i]['time']
-                break
-        for i in range(1, df.shape[0]):  # 运动结束
-            if abs(df.iloc[i]['y_center'] - df.iloc[-1]['y_center']) <= y_move_threshold:
-                y_time_end = df.iloc[i]['time']
-                break
-
-        x_time_duration = x_time_end - x_time_start
-        y_time_duration = y_time_end - y_time_start
-        x_speed = x_delta / x_time_duration if x_time_duration != 0 else 0
-        y_speed = y_delta / y_time_duration if y_time_duration != 0 else 0
+        # 获取运动数据
+        x_time_start, x_time_end, x_time_duration, x_speed, y_time_start, y_time_end, y_time_duration, y_speed = detect_motion(
+            df, base_threshold_x, base_threshold_y)
 
         # 获取绘制矩形坐标
         xmin = int(df.iloc[0]['xmin'])
@@ -109,15 +90,18 @@ def main():
     y_speed_list = np.array(y_speed_list).reshape(-1, 1)
 
     # 绘制热力矩形
-    image = draw_heatmap_rect_to_image(image, y_time_end_list, cmap, rectangle_position_list) # 绘制其他图请修改此处
+    image = draw_heatmap_rect_to_image(image, y_time_start_list, cmap, rectangle_position_list)  # 绘制其他图请修改此处
 
     # 绘制热力条
     plt.figure(dpi=300)
-    sns.heatmap(y_time_end_list, cmap=cmap) # 绘制其他图请修改此处
-    plt.savefig('./colorbar.png')
+    sns.heatmap(y_time_start_list, cmap=cmap)  # 绘制其他图请修改此处
+    colorbar_path = os.path.join(figures_dir, 'colorbar.png')
+    heatmap_path = os.path.join(figures_dir, 'heatmap.png')
+    heatmap_with_colorbar_path = os.path.join(figures_dir, 'heatmap_with_colorbar.png')
+    plt.savefig(colorbar_path)
 
     # 读取热力条并且绘制白色
-    colorbar = cv2.imread('./colorbar.png', cv2.IMREAD_UNCHANGED)
+    colorbar = cv2.imread(colorbar_path, cv2.IMREAD_UNCHANGED)
     # 绘制清除左侧区域49/64是计算得出区域
     colorbar = cv2.rectangle(colorbar,
                              (0, 0), (colorbar.shape[1] * 49 // 64, colorbar.shape[0]),
@@ -131,8 +115,55 @@ def main():
     colorbar[y:y + resize_image.shape[0], x:x + resize_image.shape[1]] = resize_image
 
     # 保存图像
-    cv2.imwrite('./heatmap.png', image)
-    cv2.imwrite('./heatmap_with_colorbar.png', colorbar)
+    cv2.imwrite(heatmap_path, image)
+    cv2.imwrite(heatmap_with_colorbar_path, colorbar)
+
+
+# 运动检测
+def detect_motion(df, base_threshold_x, base_threshold_y, window_size=5):
+    # 数据平滑
+    df['x_center'] = df['x_center'].rolling(window=window_size, min_periods=1).mean()
+    df['y_center'] = df['y_center'].rolling(window=window_size, min_periods=1).mean()
+
+    # 获取时间戳
+    y_time_start = 35
+    x_time_start = 35
+    x_time_end = 64
+    y_time_end = 64
+
+    for i in range(15, df.shape[0], 1):
+        if abs(df.iloc[i]['x_center'] - df.iloc[15]['x_center']) >= base_threshold_x:
+            x_time_start = df.iloc[i]['time']
+            break
+
+    for i in range(15, df.shape[0], 1):
+        if abs(df.iloc[i]['y_center'] - df.iloc[15]['y_center']) >= base_threshold_y:
+            y_time_start = df.iloc[i]['time']
+            break
+
+    for i in range(15, df.shape[0], 1):
+        if abs(df.iloc[i]['x_center'] - df.iloc[-1]['x_center']) <= base_threshold_x:
+            x_time_end = df.iloc[i]['time']
+            break
+
+    for i in range(15, df.shape[0], 1):
+        if abs(df.iloc[i]['y_center'] - df.iloc[-1]['y_center']) <= base_threshold_y:
+            y_time_end = df.iloc[i]['time']
+            break
+
+    # 持续时间计算
+    x_time_duration = max(1, x_time_end - x_time_start)
+    y_time_duration = max(1, y_time_end - y_time_start)
+
+    # 总位移
+    x_delta = abs(df.iloc[-1]['x_center'] - df.iloc[0]['x_center'])
+    y_delta = abs(df.iloc[-1]['y_center'] - df.iloc[0]['y_center'])
+
+    # 速度计算
+    x_speed = x_delta / x_time_duration if x_time_duration > 0 else 0
+    y_speed = y_delta / y_time_duration if y_time_duration > 0 else 0
+
+    return x_time_start, x_time_end, x_time_duration, x_speed, y_time_start, y_time_end, y_time_duration, y_speed
 
 
 # 绘制热力矩形

@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# YOLO training outputs
+wandb/
+
+# Model weights (large binaries, tracked for this project)
+# *.pt  # 权重文件需要跟踪，不忽略
+*.pth
+*.onnx
+*.engine
+*.torchscript
+
+# Data caches
+*.cache
+
+# Output files
+output/
+temp/
+
+# Archives not used as paper assets
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Large generated media/results
+*.mp4
+*.avi
+assets/
+csv/
+runs/
+selected/
+video/
+weights/
+
+# Logs
+*.log
+log/

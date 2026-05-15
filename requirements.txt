@@ -1,0 +1,12 @@
+ultralytics==8.3.87
+torch==2.6.0
+torchvision==0.21.0
+numpy==1.26.4
+opencv-python==4.11.0.86
+pandas==2.2.3
+boxmot==19.0.0
+motmetrics==1.4.0
+scikit-learn==1.8.0
+seaborn
+matplotlib
+tqdm

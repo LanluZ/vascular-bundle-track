@@ -1,4 +1,4 @@
-import pandas as pd
+import csv
 
 
 # 帧类
@@ -29,23 +29,16 @@ class Vascular:
     # 保存为csv文件
     def to_csv(self, csv_path):
         columns = ['xmin', 'ymin', 'xmax', 'ymax', 'conf', 'cls', 'time']
-        df = pd.DataFrame(columns=columns)
-
-        df['xmin'] = df['xmin'].astype(int)
-        df['ymin'] = df['ymin'].astype(int)
-        df['xmax'] = df['xmax'].astype(int)
-        df['ymax'] = df['ymax'].astype(int)
-        df['conf'] = df['conf'].astype(float)
-        df['cls'] = df['cls'].astype(int)
-        df['time'] = df['time'].astype(int)
-
-        for i, frame in enumerate(self.frames):
-            df.loc[i, 'xmin'] = frame.xyxy[0]
-            df.loc[i, 'ymin'] = frame.xyxy[1]
-            df.loc[i, 'xmax'] = frame.xyxy[2]
-            df.loc[i, 'ymax'] = frame.xyxy[3]
-            df.loc[i, 'conf'] = frame.conf
-            df.loc[i, 'cls'] = frame.cls
-            df.loc[i, 'time'] = frame.time
-
-        df.to_csv(csv_path, index=False)
+        with open(csv_path, 'w', encoding='utf-8', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(columns)
+            for frame in self.frames:
+                writer.writerow([
+                    int(frame.xyxy[0]),
+                    int(frame.xyxy[1]),
+                    int(frame.xyxy[2]),
+                    int(frame.xyxy[3]),
+                    float(frame.conf),
+                    int(frame.cls),
+                    int(frame.time),
+                ])

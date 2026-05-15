@@ -17,7 +17,7 @@ def main():
         os.makedirs(folder, exist_ok=True)
 
     # 切割视频
-    split_video('video/52-control.mp4', 'temp')
+    split_video('video/56-fire.mp4', 'temp')
 
     # 预先创建所有需要的目录
     files = [f for f in os.listdir(path) if f.endswith('.csv')]
