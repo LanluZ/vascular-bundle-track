@@ -54,6 +54,34 @@ pip install -r requirements.txt
 
 注意：Ultralytics 8.3.87 在当前环境下需要 `numpy<2`，否则验证 mAP 时会因为 `np.trapz` 缺失报错。
 
+## 数据与模型（Hugging Face）
+
+大文件（模型权重、源视频）托管在 Hugging Face，**clone 后先下载到仓库对应路径**，再跑后续命令即可直接运行：
+
+| 资源 | Hugging Face | 内容 |
+| --- | --- | --- |
+| 模型权重 | [LanluZ/vascular-bundle-yolov10](https://huggingface.co/LanluZ/vascular-bundle-yolov10) | `weights/best.pt`（最终，mAP50 0.9931）、`weights/best_previous.pt`（上一版，mAP50 0.9830） |
+| 视频数据 | [LanluZ/vascular-bundle-media](https://huggingface.co/datasets/LanluZ/vascular-bundle-media) | `videos/56-fire.mp4`（演示源）、`videos/56-fire_tracked.mp4`（追踪成片），及 `21-air`/`22-microwave`/`24-oil`/`25-water`/`51-vapour`/`52-control` 等测试视频 |
+
+下载模型权重（对应 eval / detect 命令里的模型路径）：
+
+```bash
+hf download LanluZ/vascular-bundle-yolov10 weights/best.pt --local-dir runs/detect/bamboo_yolov10_20260515
+```
+
+下载演示源视频（对应 detect 命令的 `--source`）：
+
+```bash
+hf download LanluZ/vascular-bundle-media videos/56-fire.mp4 --local-dir .
+```
+
+也可用 Ultralytics 直接远程加载模型：
+
+```python
+from ultralytics import YOLO
+model = YOLO("https://huggingface.co/LanluZ/vascular-bundle-yolov10/resolve/main/weights/best.pt")
+```
+
 ## 数据集
 
 `data.yaml` 指向本项目内的 YOLO 数据集：
@@ -89,32 +117,6 @@ runs/detect/<实验名>/
 runs/detect/bamboo_yolov10_20260515/weights/best.pt
 ```
 
-## 模型权重（Hugging Face）
-
-模型权重已托管到 Hugging Face，可直接下载或远程加载，无需从仓库 LFS 下载大文件：
-
-- 模型页面：[LanluZ/vascular-bundle-yolov10](https://huggingface.co/LanluZ/vascular-bundle-yolov10)
-
-下载到本地后使用：
-
-```bash
-hf download LanluZ/vascular-bundle-yolov10 weights/best.pt --local-dir .
-```
-
-或用 Ultralytics 远程加载：
-
-```python
-from ultralytics import YOLO
-model = YOLO("https://huggingface.co/LanluZ/vascular-bundle-yolov10/resolve/main/weights/best.pt")
-```
-
-仓库内文件：
-
-| 文件 | 说明 |
-| --- | --- |
-| `weights/best.pt` | 最终模型（mAP50 0.9931） |
-| `weights/best_previous.pt` | 上一版模型（mAP50 0.9830） |
-
 ## 检测指标
 
 对验证集导出 Precision、Recall、mAP50、mAP50-95 和 F1：
@@ -137,25 +139,12 @@ reports/metrics_summary.md
 | ---: | ---: | ---: | ---: | ---: |
 | 0.9722 | 0.9777 | 0.9931 | 0.9765 | 0.9749 |
 
-## 视频数据（Hugging Face）
-
-源视频与检测/追踪演示成片已托管到 Hugging Face 数据集：[LanluZ/vascular-bundle-media](https://huggingface.co/datasets/LanluZ/vascular-bundle-media)。
-
-下载演示源视频与成片：
-
-```bash
-hf download LanluZ/vascular-bundle-media videos/56-fire.mp4 --local-dir video
-hf download LanluZ/vascular-bundle-media videos/56-fire_tracked.mp4 --local-dir .
-```
-
-仓库内视频（`videos/`）：`56-fire.mp4`（演示源）、`56-fire_tracked.mp4`（追踪成片），以及其它测试视频（`21-air`、`22-microwave`、`24-oil`、`25-water`、`51-vapour`、`52-control` 等）。
-
 ## 视频检测与跟踪
 
 运行 YOLO + ByteTrack 管线：
 
 ```powershell
-python detect_cam.py --source video/56-fire.mp4 --model runs/detect/bamboo_yolov10_20260515/weights/best.pt --conf 0.58 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolov10_20260515 --clean
+python detect_cam.py --source videos/56-fire.mp4 --model runs/detect/bamboo_yolov10_20260515/weights/best.pt --conf 0.58 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolov10_20260515 --clean
 ```
 
 输出目录：
@@ -257,7 +246,7 @@ python train.py --model weights/yolov10m.pt --data data.yaml --epochs 50 --batch
 python evaluate_detection.py --model runs/detect/bamboo_yolov10_20260515/weights/best.pt --data data.yaml --device cuda:0 --output reports/detection_metrics_bamboo_yolov10_20260515.json
 
 # 跑视频管线
-python detect_cam.py --source video/56-fire.mp4 --model runs/detect/bamboo_yolov10_20260515/weights/best.pt --conf 0.58 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolov10_20260515 --clean
+python detect_cam.py --source videos/56-fire.mp4 --model runs/detect/bamboo_yolov10_20260515/weights/best.pt --conf 0.58 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolov10_20260515 --clean
 
 # 汇总追踪和效率指标
 python summarize_pipeline.py --csv-dir runs/pipeline/56-fire_bamboo_yolov10_20260515/csv --min-track-length 40 --frame-count 61 --manual-basis objects --manual-seconds-per-object 1 --timing-json runs/pipeline/56-fire_bamboo_yolov10_20260515/timing.json --output reports/pipeline_summary_56-fire_bamboo_yolov10_20260515.json
