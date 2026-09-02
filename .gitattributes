@@ -1,1 +1,1 @@
-*.pt filter=lfs diff=lfs merge=lfs -text
+# 模型权重已迁移至 Hugging Face（LanluZ/vascular-bundle-yolov10），本仓库不再使用 Git LFS。
