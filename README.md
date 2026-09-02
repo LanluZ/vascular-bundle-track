@@ -137,6 +137,19 @@ reports/metrics_summary.md
 | ---: | ---: | ---: | ---: | ---: |
 | 0.9722 | 0.9777 | 0.9931 | 0.9765 | 0.9749 |
 
+## 视频数据（Hugging Face）
+
+源视频与检测/追踪演示成片已托管到 Hugging Face 数据集：[LanluZ/vascular-bundle-media](https://huggingface.co/datasets/LanluZ/vascular-bundle-media)。
+
+下载演示源视频与成片：
+
+```bash
+hf download LanluZ/vascular-bundle-media videos/56-fire.mp4 --local-dir video
+hf download LanluZ/vascular-bundle-media videos/56-fire_tracked.mp4 --local-dir .
+```
+
+仓库内视频（`videos/`）：`56-fire.mp4`（演示源）、`56-fire_tracked.mp4`（追踪成片），以及其它测试视频（`21-air`、`22-microwave`、`24-oil`、`25-water`、`51-vapour`、`52-control` 等）。
+
 ## 视频检测与跟踪
 
 运行 YOLO + ByteTrack 管线：
