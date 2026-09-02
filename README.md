@@ -59,9 +59,10 @@ pip install -r requirements.txt
 `data.yaml` 指向本项目内的 YOLO 数据集：
 
 ```yaml
-path: "C:/Users/LanluZ/PycharmProjects/yolov8_test/data"
-train: "train/images"
-val: "val/images"
+# data.yaml — 路径相对本文件所在目录解析（train.py / evaluate_detection.py 会自动转为绝对路径，
+# 因此不含用户名硬编码，任何机器 clone 后可直接运行）
+train: "data/train/images"
+val: "data/val/images"
 names:
   0: Vascular
 ```

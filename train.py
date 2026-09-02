@@ -5,6 +5,14 @@ from ultralytics import YOLO
 project_path = os.path.dirname(__file__)
 
 
+def _absolute_data_path(data: str) -> str:
+    """Resolve a relative --data value against the script directory (repo root),
+    so a portable data.yaml resolves correctly regardless of cwd."""
+    if not data or os.path.isabs(data):
+        return data
+    return os.path.normpath(os.path.join(project_path, data))
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Train YOLOv10 for bamboo vascular bundle detection.")
     parser.add_argument("--model", default="weights/yolov10m.pt", help="Initial model weights.")
@@ -25,7 +33,7 @@ def main():
     model = YOLO(args.model)
 
     model.train(
-        data=args.data,
+        data=_absolute_data_path(args.data),
         epochs=args.epochs,
         batch=args.batch,
         patience=args.patience,

@@ -1,8 +1,16 @@
 import argparse
 import csv
+import os
 from pathlib import Path
 
 from metrics_utils import compute_f1, save_json
+
+
+def _absolute_data_path(data: str) -> str:
+    """Resolve a relative --data value against the script directory (repo root)."""
+    if not data or os.path.isabs(data):
+        return data
+    return os.path.normpath(os.path.join(Path(__file__).parent, data))
 
 
 def parse_args():
@@ -24,7 +32,7 @@ def main():
 
     model = YOLO(args.model)
     results = model.val(
-        data=args.data,
+        data=_absolute_data_path(args.data),
         imgsz=args.imgsz,
         device=args.device,
         project=args.project,

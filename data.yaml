@@ -1,6 +1,4 @@
-path: "C:/Users/LanluZ/PycharmProjects/yolov8_test/data"
-train: "train/images"
-val: "val/images"
-
+train: "data/train/images"
+val: "data/val/images"
 names:
   0: Vascular
