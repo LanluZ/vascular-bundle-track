@@ -88,6 +88,32 @@ runs/detect/<实验名>/
 runs/detect/bamboo_yolov10_20260515/weights/best.pt
 ```
 
+## 模型权重（Hugging Face）
+
+模型权重已托管到 Hugging Face，可直接下载或远程加载，无需从仓库 LFS 下载大文件：
+
+- 模型页面：[LanluZ/vascular-bundle-yolov10](https://huggingface.co/LanluZ/vascular-bundle-yolov10)
+
+下载到本地后使用：
+
+```bash
+hf download LanluZ/vascular-bundle-yolov10 weights/best.pt --local-dir .
+```
+
+或用 Ultralytics 远程加载：
+
+```python
+from ultralytics import YOLO
+model = YOLO("https://huggingface.co/LanluZ/vascular-bundle-yolov10/resolve/main/weights/best.pt")
+```
+
+仓库内文件：
+
+| 文件 | 说明 |
+| --- | --- |
+| `weights/best.pt` | 最终模型（mAP50 0.9931） |
+| `weights/best_previous.pt` | 上一版模型（mAP50 0.9830） |
+
 ## 检测指标
 
 对验证集导出 Precision、Recall、mAP50、mAP50-95 和 F1：

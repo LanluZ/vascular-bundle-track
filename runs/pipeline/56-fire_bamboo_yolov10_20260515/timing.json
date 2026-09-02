@@ -1,0 +1,11 @@
+{
+  "total_seconds": 115.42362260000027,
+  "predict_seconds": 6.39851489999819,
+  "track_seconds": 2.0719719999979134,
+  "write_frame_seconds": 58.508352199998626,
+  "frame_count": 61,
+  "track_count": 320,
+  "source": "video/56-fire.mp4",
+  "model": "runs/detect/bamboo_yolov10_20260515/weights/best.pt",
+  "conf": 0.58
+}
