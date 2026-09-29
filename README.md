@@ -42,15 +42,16 @@
 pip install -r requirements.txt
 ```
 
-已验证的关键版本：
+本分支实测的关键版本：
 
-- Python 3.11
-- PyTorch 2.6.0 + CUDA 12.6
+- Python 3.12.9
+- PyTorch 2.12.0+cu132
 - Ultralytics 8.4.165
 - NumPy 1.26.4
-- OpenCV 4.11.0
+- OpenCV 4.10.0
 - boxmot 12.0.1（dist 12.0.2）
-- motmetrics 1.4.0
+
+`requirements.txt` 固定值（本分支未在此组合下实测）：Python 3.11、PyTorch 2.6.0 + CUDA 12.6、OpenCV 4.11.0、motmetrics 1.4.0。
 
 注意：`requirements.txt` 固定 `numpy==1.26.4`。NumPy 2.x 移除了 `np.trapz`，Ultralytics 8.3.87 验证 mAP 时会因此报错；8.4.165 已按 NumPy 版本改用 `np.trapezoid`，不再触发。
 
@@ -117,7 +118,7 @@ runs/detect/<实验名>/
 runs/detect/bamboo_yolo26_20260929/weights/best.pt
 ```
 
-本次（2026-09-29）实际训练用 `--epochs 150 --batch 16 --patience 30 --optimizer AdamW --lr0 0.001`（AMP），到第 144 轮触发 patience 早停，best mAP50-95 0.970。
+本次（2026-09-29）实际训练用 `--epochs 150 --batch 16 --patience 30 --optimizer AdamW --lr0 0.001`（AMP），到第 144 轮触发 patience 早停，best mAP50-95 0.970（0.970 为独立 `val()` 复验值；`results.csv` best 行为 0.96936）。
 
 ## 检测指标
 
@@ -141,6 +142,8 @@ YOLO26 验证结果：
 | 0.9909 | 0.9758 | 0.9939 | 0.9695 | 0.9833 |
 
 同一环境（Ultralytics 8.4.165）下的同源 v10 对照为 0.9576 / 0.9777 / 0.9910 / 0.9563 / 0.9676（`reports/detection_metrics_v10bamboo_84.json`）。两者都在同一验证集（2 张图、224 个实例）上评估，样本小、指标噪声大；8.3.87 环境下的历史存档值不可与本表直接比较。
+
+v10 存档检测指标：P 0.9722 / R 0.9777 / mAP50 0.9931 / mAP50-95 0.9765 / F1 0.9749（`reports/detection_metrics_bamboo_yolov10_20260515.json`，8.3.87 存档，仅供历史参考）。
 
 ## 视频检测与跟踪
 
@@ -219,7 +222,7 @@ frame,id,x,y,w,h,conf,class,visibility
 
 同一段 `56-fire.mp4`（61 帧，`min_track_length=40`）在四种配置下的实测：
 
-| 配置 | 环境 | conf | 过滤前 tracks / frag | 过滤后 tracks / frag | total |
+| 配置 | Ultralytics | conf | 过滤前 tracks / frag | 过滤后 tracks / frag | total |
 | --- | --- | ---: | ---: | ---: | ---: |
 | yolo26 + OCSORT（当前默认） | 8.4.165 | 0.25 | 565 / 588 | 63 / 66 | 148.65 s |
 | v10 + OCSORT | 8.4.165 | 0.58 | 608 / 709 | 138 / 111 | 169.67 s |
@@ -230,7 +233,7 @@ frame,id,x,y,w,h,conf,class,visibility
 - 当前默认行 conf=0.25、其余行 conf=0.58：YOLO26 的置信度集中在 0.25–0.4（0.58 处 61 帧仅 334 个检出），v10 到 0.7 处仍有 17745 个检出，operating point 不同，跨这两组的差异同时包含 conf 差异。
 - 存档行是 8.3.87 环境的历史记录；同环境复刻（8.4.165 的 v10 + ByteTrack 行）与存档不一致，存档行不作为同环境基线。
 - 与存档相比，当前默认配置过滤后的可用轨迹量级相近（63 vs 53 条、2982 vs 2764 个观测）、过滤后 fragmentation 更少（66 vs 128）、总耗时更长（148.65 s vs 115.42 s）；两行之间模型、追踪器、conf、软件版本四个变量同时不同，只描述差异、不作归因。
-- 同环境、同模型、同 conf 下只换追踪器（后两行）：过滤后 fragmentation 413 → 111（-73%），通过 40 帧过滤的轨迹 195 → 138，track 段耗时 7.10 s → 20.30 s。
+- 同环境、同模型、同 conf 下只换追踪器（中间两行，即 v10 + OCSORT 与 v10 + ByteTrack 两行）：过滤后 fragmentation 413 → 111（-73%），通过 40 帧过滤的轨迹 195 → 138，track 段耗时 7.10 s → 20.30 s。
 
 ## 热力图和后处理
 
