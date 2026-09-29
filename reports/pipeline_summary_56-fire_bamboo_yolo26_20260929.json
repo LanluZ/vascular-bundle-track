@@ -1,0 +1,43 @@
+{
+  "tracking": {
+    "min_track_length": 40,
+    "before": {
+      "track_count": 24,
+      "detection_count": 93,
+      "short_track_count": 24,
+      "avg_track_length": 3.875,
+      "median_track_length": 2.0,
+      "avg_conf": 0.6543010169326264,
+      "fragmentation_proxy": 13
+    },
+    "after": {
+      "track_count": 0,
+      "detection_count": 0,
+      "short_track_count": 0,
+      "avg_track_length": 0.0,
+      "median_track_length": 0.0,
+      "avg_conf": 0.0,
+      "fragmentation_proxy": 0
+    },
+    "comparison": {
+      "removed_short_tracks": 24,
+      "removed_detections": 93,
+      "fragmentation_proxy_delta": -13
+    },
+    "note": "No frame-level identity ground truth was provided, so IDF1, MOTA, and true ID switches cannot be computed. These are heuristic continuity metrics for before/after comparison."
+  },
+  "efficiency": {
+    "frame_count": 61,
+    "object_count": 93,
+    "manual_basis": "objects",
+    "manual_seconds_per_frame": 3.0,
+    "manual_seconds_per_object": 1.0,
+    "manual": {
+      "seconds": 93.0,
+      "minutes": 1.55,
+      "hours": 0.025833333333333333
+    },
+    "auto_seconds": 120.96423250000225,
+    "speedup": 0.7688223045601373
+  }
+}
