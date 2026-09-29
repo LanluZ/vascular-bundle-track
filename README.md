@@ -74,6 +74,7 @@ hf download LanluZ/vascular-bundle-yolov10 weights/best.pt --local-dir runs/dete
 
 ```bash
 hf download LanluZ/vascular-bundle-media videos/56-fire.mp4 --local-dir .
+mkdir -p video && mv videos/56-fire.mp4 video/ && rmdir videos   # 本地统一用 video/ 目录
 ```
 
 也可用 Ultralytics 直接远程加载模型：
@@ -150,7 +151,7 @@ v10 存档检测指标：P 0.9722 / R 0.9777 / mAP50 0.9931 / mAP50-95 0.9765 / 
 运行 YOLO + OCSORT 管线（默认追踪器 `ocsort`，`--tracker bytetrack` 可切回 ByteTrack）：
 
 ```powershell
-python detect_cam.py --source videos/56-fire.mp4 --model runs/detect/bamboo_yolo26_20260929/weights/best.pt --conf 0.25 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolo26_20260929_c025 --tracker ocsort --clean
+python detect_cam.py --source video/56-fire.mp4 --model runs/detect/bamboo_yolo26_20260929/weights/best.pt --conf 0.25 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolo26_20260929_c025 --tracker ocsort --clean
 ```
 
 YOLO26 的置信度集中在 0.25–0.4（`--conf 0.58` 时 61 帧只有 334 个检出），因此本管线用 `--conf 0.25`。运行名后缀 `_c025` 表示该 conf 的那次运行；同名不带后缀的目录是 conf=0.58 的存档（该参数下管线几乎为空，仅作留档）。
