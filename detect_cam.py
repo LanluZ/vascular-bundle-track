@@ -32,6 +32,12 @@ def parse_args():
     parser.add_argument("--name", default=None, help="Experiment name under runs/pipeline.")
     parser.add_argument("--project", default="runs/pipeline")
     parser.add_argument("--clean", action="store_true", help="Replace an existing experiment directory.")
+    parser.add_argument(
+        "--tracker",
+        choices=sorted(TRACKER_CLASSES),
+        default="ocsort",
+        help="boxmot tracker backend (default: ocsort).",
+    )
     return parser.parse_args()
 
 
@@ -46,7 +52,7 @@ def main():
     timings = {}
     total_start = time.perf_counter()
     model = YOLO(args.model)
-    tracker = _create_tracker()
+    tracker = _create_tracker(args.tracker)
     video = _open_source(args.source)
     output_video_name = _output_video_name(args.source)
 
@@ -74,10 +80,10 @@ def main():
         track_seconds += time.perf_counter() - start
 
         for trk in tracker.active_tracks:
-            if not getattr(trk, "is_activated", True):
+            if not _track_is_current(trk, tracker):
                 continue
             track_id = int(_first_attr(trk, ["id", "track_id"]))
-            xyxy = _first_attr(trk, ["xyxy", "tlbr"])
+            xyxy = _track_box(trk)
             conf = _first_attr(trk, ["conf", "score"], default=0.0)
             cls = _first_attr(trk, ["cls", "cls_id"], default=0)
             frame = Frame(xyxy, conf, cls, frame_index)
@@ -109,6 +115,7 @@ def main():
             "track_count": len(vascular_list),
             "source": args.source,
             "model": args.model,
+            "tracker": args.tracker,
             "conf": args.conf,
         }
     )
@@ -125,18 +132,64 @@ def _prepare_output_dir(args) -> Path:
     return output_dir
 
 
-def _create_tracker():
+TRACKER_CLASSES = {"bytetrack": "ByteTrack", "ocsort": "OcSort"}
+
+
+def _create_tracker(name: str = "ocsort"):
+    """Instantiate a boxmot tracker by name (boxmot 12.0.1 public classes)."""
     try:
-        from boxmot import ByteTrack
-    except ImportError:
-        try:
-            from boxmot.trackers.bytetrack.bytetrack import ByteTrack
-        except ImportError as exc:
-            raise RuntimeError("ByteTrack requires boxmot. Install it before running detect_cam.py.") from exc
-    try:
-        return ByteTrack()
-    except TypeError as exc:
-        raise RuntimeError("ByteTrack requires boxmot. Install it before running detect_cam.py.") from exc
+        import boxmot
+    except ImportError as exc:
+        raise RuntimeError("Tracking requires boxmot. Install it before running detect_cam.py.") from exc
+    cls = getattr(boxmot, TRACKER_CLASSES[name], None)
+    if cls is None:
+        raise RuntimeError(
+            f"boxmot {boxmot.__version__} has no class {TRACKER_CLASSES[name]!r} for tracker {name!r}."
+        )
+    return cls()
+
+
+def _track_box(trk) -> np.ndarray:
+    """Return the track's xyxy box across boxmot track types.
+
+    ByteTrack's STrack exposes ``xyxy``/``tlbr``; OcSort's KalmanBoxTracker only
+    exposes its last observation and the Kalman state, as boxmot's own update()
+    output code does.
+    """
+    for name in ("xyxy", "tlbr"):
+        if hasattr(trk, name):
+            return np.asarray(getattr(trk, name), dtype=np.float32).reshape(-1)[:4]
+    last = getattr(trk, "last_observation", None)
+    if last is not None and np.sum(last) >= 0:
+        return np.asarray(last, dtype=np.float32).reshape(-1)[:4]
+    if hasattr(trk, "get_state"):
+        return np.asarray(trk.get_state(), dtype=np.float32).reshape(-1)[:4]
+    raise AttributeError(f"{type(trk).__name__} exposes no bounding box")
+
+
+def _track_is_current(trk, tracker) -> bool:
+    """Whether the tracker reports this track for the current frame.
+
+    ByteTrack marks activation on the track itself (its ``update()`` output is
+    already gated on ``is_activated``); OcSort keeps lost tracks in
+    ``active_tracks`` for ``max_age`` frames, so for OcSort we replicate
+    boxmot's own output gate (``ocsort.py:380-383``)::
+
+        (trk.time_since_update < 1) and
+        (trk.hit_streak >= tracker.min_hits or tracker.frame_count <= tracker.min_hits)
+
+    ``min_hits`` (default 3) and ``frame_count`` live on the **tracker**
+    object, not on the track, so the tracker must be passed in.
+    """
+    if hasattr(trk, "is_activated"):
+        return bool(trk.is_activated)
+    if int(getattr(trk, "time_since_update", 0)) >= 1:
+        return False
+    min_hits = int(getattr(tracker, "min_hits", 3))  # boxmot default
+    # Unknown frame_count -> treat warm-up as over -> require hit_streak.
+    frame_count = int(getattr(tracker, "frame_count", min_hits + 1))
+    hit_streak = int(getattr(trk, "hit_streak", 0))
+    return hit_streak >= min_hits or frame_count <= min_hits
 
 
 def _open_source(source: str):

@@ -56,6 +56,9 @@ selected/
 video/
 weights/
 
+# Hermes superpowers (plan / briefs / reports / progress ledger — never committed)
+.superpowers/
+
 # Logs
 *.log
 log/
