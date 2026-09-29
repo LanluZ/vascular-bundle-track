@@ -61,10 +61,17 @@ pip install -r requirements.txt
 
 | 资源 | Hugging Face | 内容 |
 | --- | --- | --- |
-| 模型权重 | [LanluZ/vascular-bundle-yolov10](https://huggingface.co/LanluZ/vascular-bundle-yolov10) | `weights/best.pt`（最终，mAP50 0.9931）、`weights/best_previous.pt`（上一版，mAP50 0.9830） |
+| 模型权重（当前默认） | [LanluZ/vascular-bundle-yolo26](https://huggingface.co/LanluZ/vascular-bundle-yolo26) | `weights/best.pt`（YOLO26m，mAP50-95 0.9694 / mAP50 0.9939） |
+| 模型权重（v10 存档） | [LanluZ/vascular-bundle-yolov10](https://huggingface.co/LanluZ/vascular-bundle-yolov10) | `weights/best.pt`（最终，mAP50 0.9931）、`weights/best_previous.pt`（上一版，mAP50 0.9830） |
 | 视频数据 | [LanluZ/vascular-bundle-media](https://huggingface.co/datasets/LanluZ/vascular-bundle-media) | `videos/56-fire.mp4`（演示源）、`videos/56-fire_tracked.mp4`（追踪成片），及 `21-air`/`22-microwave`/`24-oil`/`25-water`/`51-vapour`/`52-control` 等测试视频 |
 
-下载 v10 存档模型权重（对照用；当前默认模型 YOLO26 由下文训练命令本地生成）：
+下载 YOLO26 默认模型权重（直接可用，下文训练命令仅用于复现）：
+
+```bash
+hf download LanluZ/vascular-bundle-yolo26 weights/best.pt --local-dir runs/detect/bamboo_yolo26_20260929
+```
+
+下载 v10 存档模型权重（对照用）：
 
 ```bash
 hf download LanluZ/vascular-bundle-yolov10 weights/best.pt --local-dir runs/detect/bamboo_yolov10_20260515
