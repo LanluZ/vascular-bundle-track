@@ -25,6 +25,9 @@ def parse_args():
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--name", default="bamboo_yolov10")
     parser.add_argument("--project", default="runs/detect")
+    parser.add_argument("--optimizer", default=None, help="Optimizer name (passed to model.train).")
+    parser.add_argument("--lr0", type=float, default=None, help="Initial learning rate (passed to model.train).")
+    parser.add_argument("--no-amp", action="store_true", help="Disable AMP (passes amp=False to model.train).")
     return parser.parse_args()
 
 
@@ -32,7 +35,7 @@ def main():
     args = parse_args()
     model = YOLO(args.model)
 
-    model.train(
+    train_kwargs = dict(
         data=_absolute_data_path(args.data),
         epochs=args.epochs,
         batch=args.batch,
@@ -44,6 +47,14 @@ def main():
         name=args.name,
         pretrained=True,
     )
+    if args.optimizer is not None:
+        train_kwargs["optimizer"] = args.optimizer
+    if args.lr0 is not None:
+        train_kwargs["lr0"] = args.lr0
+    if args.no_amp:
+        train_kwargs["amp"] = False
+
+    model.train(**train_kwargs)
 
 
 if __name__ == '__main__':
