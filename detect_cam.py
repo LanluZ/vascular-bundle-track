@@ -80,7 +80,7 @@ def main():
         track_seconds += time.perf_counter() - start
 
         for trk in tracker.active_tracks:
-            if not _track_is_current(trk):
+            if not _track_is_current(trk, tracker):
                 continue
             track_id = int(_first_attr(trk, ["id", "track_id"]))
             xyxy = _track_box(trk)
@@ -167,16 +167,29 @@ def _track_box(trk) -> np.ndarray:
     raise AttributeError(f"{type(trk).__name__} exposes no bounding box")
 
 
-def _track_is_current(trk) -> bool:
+def _track_is_current(trk, tracker) -> bool:
     """Whether the tracker reports this track for the current frame.
 
-    ByteTrack marks activation on the track itself; OcSort keeps lost tracks in
-    ``active_tracks`` for ``max_age`` frames, so a track without ``is_activated``
-    counts only when it was updated this frame.
+    ByteTrack marks activation on the track itself (its ``update()`` output is
+    already gated on ``is_activated``); OcSort keeps lost tracks in
+    ``active_tracks`` for ``max_age`` frames, so for OcSort we replicate
+    boxmot's own output gate (``ocsort.py:380-383``)::
+
+        (trk.time_since_update < 1) and
+        (trk.hit_streak >= tracker.min_hits or tracker.frame_count <= tracker.min_hits)
+
+    ``min_hits`` (default 3) and ``frame_count`` live on the **tracker**
+    object, not on the track, so the tracker must be passed in.
     """
     if hasattr(trk, "is_activated"):
         return bool(trk.is_activated)
-    return int(getattr(trk, "time_since_update", 0)) < 1
+    if int(getattr(trk, "time_since_update", 0)) >= 1:
+        return False
+    min_hits = int(getattr(tracker, "min_hits", 3))  # boxmot default
+    # Unknown frame_count -> treat warm-up as over -> require hit_streak.
+    frame_count = int(getattr(tracker, "frame_count", min_hits + 1))
+    hit_streak = int(getattr(trk, "hit_streak", 0))
+    return hit_streak >= min_hits or frame_count <= min_hits
 
 
 def _open_source(source: str):
