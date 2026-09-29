@@ -264,19 +264,3 @@ python -m pytest tests/ -q
 ```powershell
 python -m py_compile metrics_utils.py evaluate_detection.py summarize_pipeline.py train.py detect_cam.py splicing.py vascular.py
 ```
-
-## 常用命令速查
-
-```powershell
-# 训练
-python train.py --model weights/yolo26m.pt --data data.yaml --epochs 50 --batch 8 --patience 30 --imgsz 640 --degrees 0 --device cuda:0 --name bamboo_yolo26_20260929
-
-# 验证检测指标
-python evaluate_detection.py --model runs/detect/bamboo_yolo26_20260929/weights/best.pt --data data.yaml --device cuda:0 --output reports/detection_metrics_bamboo_yolo26_20260929.json
-
-# 跑视频管线（默认追踪器 ocsort，--tracker bytetrack 可切换）
-python detect_cam.py --source videos/56-fire.mp4 --model runs/detect/bamboo_yolo26_20260929/weights/best.pt --conf 0.25 --device cuda:0 --rotate ccw90 --fps 5 --name 56-fire_bamboo_yolo26_20260929_c025 --tracker ocsort --clean
-
-# 汇总追踪和效率指标
-python summarize_pipeline.py --csv-dir runs/pipeline/56-fire_bamboo_yolo26_20260929_c025/csv --min-track-length 40 --frame-count 61 --manual-basis objects --manual-seconds-per-object 1 --timing-json runs/pipeline/56-fire_bamboo_yolo26_20260929_c025/timing.json --output reports/pipeline_summary_56-fire_bamboo_yolo26_20260929_c025.json
-```
