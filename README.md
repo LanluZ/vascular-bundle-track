@@ -6,32 +6,32 @@
 
 ```text
 .
-├── assets/                  # 归档的原始文件，不作为默认运行入口
-│   ├── archives/             # 压缩包
-│   ├── pickles/              # 历史 pkl 文件
-│   └── raw_videos/           # 根目录迁移来的旧视频
-├── data/                     # YOLO 数据集
+├── csv/                     # 轨迹 CSV 导出
+│   ├── selected/            # 筛选后的轨迹子集
+├── data/                    # YOLO 数据集
 │   ├── train/images
 │   ├── train/labels
 │   ├── val/images
-│   └── val/labels
-├── reports/                  # 指标报告和导出结果
-│   └── figures/              # 热力图、colorbar 等图像产物
-├── runs/                     # YOLO 和视频管线运行输出
-├── tests/                    # 统计工具单元测试
-├── video/                    # 默认视频输入目录
-├── weights/                  # 模型权重
-├── data.yaml                 # YOLO 数据配置
-├── train.py                  # YOLO 训练入口（YOLO26/YOLOv10 权重均可）
-├── evaluate_detection.py     # 检测指标导出
-├── detect_cam.py             # YOLO + OCSORT 视频管线（可切 ByteTrack）
-├── summarize_pipeline.py     # 追踪启发式指标和效率汇总
-├── metrics_utils.py          # 指标计算工具
-├── screen.py                 # 轨迹过滤和中心点/面积补充
-├── select_object.py          # 按轨迹裁剪目标图像
-├── heatmap_draw.py           # 运动热图绘制
-├── splicing.py               # 帧序列合成视频
-└── vascular.py               # 轨迹数据结构和 CSV 导出
+│   ├── val/labels
+├── reports/                 # 指标报告和导出结果
+│   ├── figures/             # 热力图、colorbar 等图像产物
+├── runs/                    # YOLO 和视频管线运行输出
+│   ├── detect/              # 训练 / 验证运行（train、bamboo_yolov10_20260515、val_bamboo_yolov10_20260515）
+│   └── pipeline/            # 视频管线运行（tracks_mot.txt、timing.json 等）
+├── tests/                   # 统计工具单元测试
+├── data.yaml                # YOLO 数据配置
+├── train.py                 # YOLO 训练入口（YOLO26/YOLOv10 权重均可）
+├── evaluate_detection.py    # 检测指标导出
+├── detect_cam.py            # YOLO + OCSORT 视频管线（可切 ByteTrack）
+├── summarize_pipeline.py    # 追踪启发式指标和效率汇总
+├── metrics_utils.py         # 指标计算工具
+├── screen.py                # 轨迹过滤和中心点/面积补充
+├── select_object.py         # 按轨迹裁剪目标图像
+├── heatmap_draw.py          # 运动热图绘制
+├── splicing.py              # 帧序列合成视频
+├── requirements.txt         # 依赖固定版本
+├── LICENSE                  # 许可证
+└── vascular.py              # 轨迹数据结构和 CSV 导出
 ```
 
 ## 环境
@@ -238,10 +238,10 @@ frame,id,x,y,w,h,conf,class,visibility
 | v10 + ByteTrack（存档） | 8.3.87 | 0.58 | 320 / 838 | 53 / 128 | 115.42 s |
 
 - 数据来自 `reports/pipeline_summary_*.json`（存档行为 `pipeline_summary_56-fire_bamboo_yolov10_20260515.json`）。
-- 当前默认行 conf=0.25、其余行 conf=0.58：YOLO26 的置信度集中在 0.25–0.4（0.58 处 61 帧仅 334 个检出），v10 到 0.7 处仍有 17745 个检出，operating point 不同，跨这两组的差异同时包含 conf 差异。
-- 存档行是 8.3.87 环境的历史记录；同环境复刻（8.4.165 的 v10 + ByteTrack 行）与存档不一致，存档行不作为同环境基线。
-- 与存档相比，当前默认配置过滤后的可用轨迹量级相近（63 vs 53 条、2982 vs 2764 个观测）、过滤后 fragmentation 更少（66 vs 128）、总耗时更长（148.65 s vs 115.42 s）；两行之间模型、追踪器、conf、软件版本四个变量同时不同，只描述差异、不作归因。
-- 同环境、同模型、同 conf 下只换追踪器（中间两行，即 v10 + OCSORT 与 v10 + ByteTrack 两行）：过滤后 fragmentation 413 → 111（-73%），通过 40 帧过滤的轨迹 195 → 138，track 段耗时 7.10 s → 20.30 s。
+- 当前默认行 conf=0.25、其余行 conf=0.58：YOLO26 的置信度集中在 0.25–0.4（0.58 处 61 帧仅 334 个检出），v10 到 0.7 处仍有 17745 个检出，operating point 不一样，这两组的差距里也就有 conf 的一份。
+- 存档行是 8.3.87 环境的历史记录；同环境复刻（8.4.165 的 v10 + ByteTrack 行）跟存档对不上，存档行当不了同环境基线。
+- 与存档相比，当前配置过滤后的可用轨迹量级相近（63 vs 53 条、2982 vs 2764 个观测），过滤后 fragmentation 更少（66 vs 128），总耗时更长（148.65 s vs 115.42 s）。这两行的模型、追踪器、conf、软件版本都不一样，差异只能摆出来，说不上是哪个引起的。
+- 同环境、同模型、同 conf 下只换追踪器（中间两行，v10 + OCSORT 和 v10 + ByteTrack）：过滤后 fragmentation 413 → 111（-73%），通过 40 帧过滤的轨迹 195 → 138，track 段耗时 7.10 s → 20.30 s。
 
 ## 热力图和后处理
 
